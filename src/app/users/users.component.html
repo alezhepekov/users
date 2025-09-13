@@ -1,0 +1,58 @@
+<div class="send-request">
+  <button
+    nz-button
+    nzType="primary"
+    [disabled]="setOfCheckedId.size === 0"
+    [nzLoading]="loading"
+    (click)="sendRequest()">
+    Send Request
+  </button>
+  <span>Selected {{ setOfCheckedId.size }} items</span>
+</div>
+<nz-table
+  #usersTable
+  nzShowPagination
+  nzShowSizeChanger
+  [nzData]="users"
+  [nzFrontPagination]="false"
+  [nzTotal]="total"
+  (nzQueryParams)="onQueryParamsChange($event)"
+  (nzCurrentPageDataChange)="onCurrentPageDataChange($event)"
+  nzTableLayout="fixed">
+  <thead>
+    <tr>
+      <th
+        [nzChecked]="checked"
+        [nzIndeterminate]="indeterminate"
+        nzLabel="Select all"
+        (nzCheckedChange)="onAllChecked($event)"
+      ></th>
+      <th>Name</th>
+      <th>Date of birth</th>
+      <th>Gender</th>
+      <th>Email</th>
+      <th>Phone</th>
+      <!-- <th>Address</th> -->
+      <th>Accout type</th>
+    </tr>
+  </thead>
+  <tbody>
+    @for (currentUser of usersTable.data; track currentUser) {
+      <tr>
+        <td
+          [nzChecked]="setOfCheckedId.has(currentUser.id)"
+          [nzDisabled]="currentUser.disabled"
+          [nzLabel]="currentUser.firstName"
+          (nzCheckedChange)="onItemChecked(currentUser.id, $event)"
+        ></td>
+        <td>{{ currentUser.firstName }}</td>
+        <td>{{ currentUser.dateOfBirth | date:'dd.MM.yyyy' }}</td>
+        <td>{{ currentUser.gender }}</td>
+        <td>{{ currentUser.email }}</td>
+        <td>{{ currentUser.phone }}</td>
+        <!-- <td>{{ data.address }}</td> -->
+        <td>{{ currentUser.accountType }}</td>
+      </tr>
+    }
+  </tbody>
+</nz-table>
