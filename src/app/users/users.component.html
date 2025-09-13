@@ -37,21 +37,21 @@
     </tr>
   </thead>
   <tbody>
-    @for (currentUser of usersTable.data; track currentUser) {
+    @for (user of usersTable.data; track user) {
       <tr>
         <td
-          [nzChecked]="setOfCheckedId.has(currentUser.id)"
-          [nzDisabled]="currentUser.disabled"
-          [nzLabel]="currentUser.firstName"
-          (nzCheckedChange)="onItemChecked(currentUser.id, $event)"
+          [nzChecked]="setOfCheckedId.has(user.id)"
+          [nzDisabled]="user.disabled"
+          [nzLabel]="user.firstName"
+          (nzCheckedChange)="onItemChecked(user.id, $event)"
         ></td>
-        <td>{{ currentUser.firstName }}</td>
-        <td>{{ currentUser.dateOfBirth | date:'dd.MM.yyyy' }}</td>
-        <td>{{ currentUser.gender }}</td>
-        <td>{{ currentUser.email }}</td>
-        <td>{{ currentUser.phone }}</td>
+        <td>{{ user.firstName }}</td>
+        <td>{{ user.dateOfBirth | date:'dd.MM.yyyy' }}</td>
+        <td>{{ user.gender }}</td>
+        <td>{{ user.email }}</td>
+        <td>{{ user.phone }}</td>
         <!-- <td>{{ data.address }}</td> -->
-        <td>{{ currentUser.accountType }}</td>
+        <td>{{ user.accountType }}</td>
       </tr>
     }
   </tbody>
