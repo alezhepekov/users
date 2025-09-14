@@ -27,8 +27,8 @@
         nzLabel="Select all"
         (nzCheckedChange)="onAllChecked($event)"
       ></th>
-      <th>Name</th>
-      <th>Date of birth</th>
+      <th nzColumnKey="firstName" [nzSortFn]="true">Name</th>
+      <th nzColumnKey="dateOfBirth" [nzSortFn]="true">Date of birth</th>
       <th>Gender</th>
       <th>Email</th>
       <th>Phone</th>
@@ -37,7 +37,7 @@
     </tr>
   </thead>
   <tbody>
-    @for (user of usersTable.data; track user) {
+    @for (user of usersTable.data; track user.id) {
       <tr>
         <td
           [nzChecked]="setOfCheckedId.has(user.id)"

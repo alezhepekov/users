@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NzTableModule, NzTableQueryParams } from 'ng-zorro-antd/table';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { User } from '../types/user';
@@ -10,8 +9,6 @@ import { User } from '../types/user';
   selector: 'app-users',
   imports: [
     CommonModule,
-    FormsModule,
-    ReactiveFormsModule,
     NzTableModule,
     NzButtonModule
   ],
@@ -32,11 +29,16 @@ export class UsersComponent implements OnInit {
   ngOnInit(): void {}
 
   onQueryParamsChange(params: NzTableQueryParams) {
-    this.http.get('http://localhost:3000/api/users', {
-      params: {
-        pageIndex: params.pageIndex - 1,
-        pageSize: params.pageSize
+    let httpParams: HttpParams = new HttpParams();
+    httpParams = httpParams.set('pageIndex', params.pageIndex - 1);
+    httpParams = httpParams.set('pageSize', params.pageSize);
+    params.sort?.forEach((sortField) => {
+      if (sortField.value) {
+        httpParams = httpParams.set('sort', `${sortField.key},${sortField.value === 'ascend' ? 'asc' : 'desc'}`);
       }
+    });
+    this.http.get('http://localhost:3000/api/users', {
+      params: httpParams
     }).subscribe((data: any) => {
       this.users = [...data.users];
       this.total = data.meta.total;
