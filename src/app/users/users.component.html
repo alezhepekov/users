@@ -29,11 +29,11 @@
       ></th>
       <th nzColumnKey="firstName" [nzSortFn]="true">Name</th>
       <th nzColumnKey="dateOfBirth" [nzSortFn]="true">Date of birth</th>
-      <th>Gender</th>
+      <th nzColumnKey="gender" [nzFilters]="filterGender" [nzFilterFn]="true">Gender</th>
       <th>Email</th>
       <th>Phone</th>
       <!-- <th>Address</th> -->
-      <th>Accout type</th>
+      <th nzColumnKey="accountType" [nzFilters]="filterAccountType" [nzFilterFn]="true">Accout type</th>
     </tr>
   </thead>
   <tbody>

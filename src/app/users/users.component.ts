@@ -23,6 +23,15 @@ export class UsersComponent implements OnInit {
   setOfCheckedId = new Set<number>();
   users: User[] = [];
   total: number = 0;
+  filterGender = [
+    { text: 'Male', value: 'MALE' },
+    { text: 'Female', value: 'FEMALE' }
+  ];
+  filterAccountType = [
+    { text: 'Admin', value: 'ADMIN' },
+    { text: 'Normal', value: 'NORMAL' },
+    { text: 'Guest', value: 'GUEST' }
+  ];
 
   constructor(private http: HttpClient) {}
 
@@ -32,9 +41,14 @@ export class UsersComponent implements OnInit {
     let httpParams: HttpParams = new HttpParams();
     httpParams = httpParams.set('pageIndex', params.pageIndex - 1);
     httpParams = httpParams.set('pageSize', params.pageSize);
-    params.sort?.forEach((sortField) => {
-      if (sortField.value) {
-        httpParams = httpParams.set('sort', `${sortField.key},${sortField.value === 'ascend' ? 'asc' : 'desc'}`);
+    params.sort?.forEach((field) => {
+      if (field.value) {
+        httpParams = httpParams.set('sort', `${field.key},${field.value === 'ascend' ? 'asc' : 'desc'}`);
+      }
+    });
+    params.filter?.forEach((filter) => {
+      if (filter.value?.length > 0) {
+        httpParams = httpParams.set('filter', `${filter.key},in,${filter.value.join(';')}`);
       }
     });
     this.http.get('http://localhost:3000/api/users', {
