@@ -1,9 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
+import { catchError, Observable, of } from 'rxjs';
 import { NzTableModule, NzTableQueryParams } from 'ng-zorro-antd/table';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { User } from '../types/user';
+import { Meta } from '../types/meta';
 
 @Component({
   selector: 'app-users',
@@ -15,7 +17,7 @@ import { User } from '../types/user';
   templateUrl: './users.component.html',
   styleUrl: './users.component.less'
 })
-export class UsersComponent implements OnInit {
+export class UsersComponent {
   checked = false;
   loading = false;
   indeterminate = false;
@@ -35,28 +37,49 @@ export class UsersComponent implements OnInit {
 
   constructor(private http: HttpClient) {}
 
-  ngOnInit(): void {}
+  loadDataFromServer(
+    pageIndex: number,
+    pageSize: number,
+    sortField: string | null,
+    sortOrder: string | null,
+    filter: Array<{ key: string; value: string[] }>
+  ): void {
+    this.loading = true;
+    this.getUsers(pageIndex, pageSize, sortField, sortOrder, filter).subscribe(data => {
+      this.loading = false;
+      this.total = data.meta.total;
+      this.users = data.users;
+    });
+  }
+
+  getUsers(
+    pageIndex: number,
+    pageSize: number,
+    sortField: string | null,
+    sortOrder: string | null,
+    filters: Array<{ key: string; value: string[] }>
+  ): Observable<{ users: User[], meta: Meta }> {
+    let params = new HttpParams()
+      .append('pageIndex', `${pageIndex}`)
+      .append('pageSize', `${pageSize}`)
+      .append('sortField', `${sortField}`)
+      .append('sortOrder', `${sortOrder}`);
+    filters.forEach(filter => {
+      filter.value.forEach(value => {
+        params = params.append(filter.key, value);
+      });
+    });
+    return this.http
+      .get<{ users: User[], meta: Meta }>('http://localhost:3000/api/users', { params })
+      .pipe(catchError(() => of({ users: [], meta: { pageIndex: pageIndex, pageSize: pageSize, total: 0 } })));
+  }
 
   onQueryParamsChange(params: NzTableQueryParams) {
-    let httpParams: HttpParams = new HttpParams();
-    httpParams = httpParams.set('pageIndex', params.pageIndex - 1);
-    httpParams = httpParams.set('pageSize', params.pageSize);
-    params.sort?.forEach((field) => {
-      if (field.value) {
-        httpParams = httpParams.set('sort', `${field.key},${field.value === 'ascend' ? 'asc' : 'desc'}`);
-      }
-    });
-    params.filter?.forEach((filter) => {
-      if (filter.value?.length > 0) {
-        httpParams = httpParams.set('filter', `${filter.key},in,${filter.value.join(';')}`);
-      }
-    });
-    this.http.get('http://localhost:3000/api/users', {
-      params: httpParams
-    }).subscribe((data: any) => {
-      this.users = [...data.users];
-      this.total = data.meta.total;
-    });
+    const { pageSize, pageIndex, sort, filter } = params;
+    const currentSort = sort.find(item => item.value !== null);
+    const sortField = (currentSort && currentSort.key) || null;
+    const sortOrder = (currentSort && currentSort.value) || null;
+    this.loadDataFromServer(pageIndex, pageSize, sortField, sortOrder, filter);
   }
 
   updateCheckedSet(id: number, checked: boolean): void {

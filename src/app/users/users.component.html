@@ -15,6 +15,7 @@
   nzShowSizeChanger
   [nzData]="users"
   [nzFrontPagination]="false"
+  [nzLoading]="loading"
   [nzTotal]="total"
   (nzQueryParams)="onQueryParamsChange($event)"
   (nzCurrentPageDataChange)="onCurrentPageDataChange($event)"
@@ -32,7 +33,6 @@
       <th nzColumnKey="gender" [nzFilters]="filterGender" [nzFilterFn]="true">Gender</th>
       <th>Email</th>
       <th>Phone</th>
-      <!-- <th>Address</th> -->
       <th nzColumnKey="accountType" [nzFilters]="filterAccountType" [nzFilterFn]="true">Accout type</th>
     </tr>
   </thead>
@@ -50,7 +50,6 @@
         <td>{{ user.gender }}</td>
         <td>{{ user.email }}</td>
         <td>{{ user.phone }}</td>
-        <!-- <td>{{ data.address }}</td> -->
         <td>{{ user.accountType }}</td>
       </tr>
     }
