@@ -3,8 +3,8 @@ export interface User {
   firstName: string;
   lastName?: string;
   middleName?: string;
-  dateOfBirth?: string;
-  gender?: string;
+  dateOfBirth: string;
+  gender: string;
   email: string;
   phone?: string;
   address?: string;

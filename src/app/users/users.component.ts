@@ -1,11 +1,13 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { catchError, Observable, of } from 'rxjs';
+import { subDays } from 'date-fns';
 import { NzTableModule, NzTableQueryParams } from 'ng-zorro-antd/table';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { User } from '../types/user';
 import { Meta } from '../types/meta';
+import { Utils } from '../types/utils';
 
 @Component({
   selector: 'app-users',
@@ -17,13 +19,15 @@ import { Meta } from '../types/meta';
   templateUrl: './users.component.html',
   styleUrl: './users.component.less'
 })
-export class UsersComponent {
+export class UsersComponent implements OnInit {
   checked = false;
   loading = false;
   indeterminate = false;
   currentPageUsers: readonly User[] = [];
   setOfCheckedId = new Set<number>();
   users: User[] = [];
+  originalUsersTest: User[] = [];
+  usersTest: User[] = [];
   total: number = 0;
   filterGender = [
     { text: 'Male', value: 'MALE' },
@@ -37,6 +41,37 @@ export class UsersComponent {
 
   constructor(private http: HttpClient) {}
 
+  ngOnInit(): void {
+    this.generateRandomUserList();
+  }
+
+  generateRandomUserList(count: number = 1000000) {
+    const manNames: string[] = ["Oliver", "Jack", "Harry", "Jacob", "George", "Noah", "Charlie", "Thomas", "Oscar", "William", "James", "Alexey", "Alexander", "Jhon", "Mike"];
+    const womanNames: string[] = ["Olivia", "Amelia", "Isla", "Ava", "Emily"];
+    const accuntTypes: string[] = ["ADMIN", "NORMAL", "GUEST"];
+
+    for (let i = 0; i < count; i++) {
+      const dateOfBirth: string = subDays(new Date(), Utils.randomIntFromInterval(0, 100 * 365)).toISOString();
+      const gender: string = i % 2 === 0 ? "MALE" : "FEMALE";
+      const name: string = i % 2 === 0 ? manNames[Utils.randomIntFromInterval(0, manNames.length - 1)] : womanNames[Utils.randomIntFromInterval(0, womanNames.length - 1)];
+      const accuntType: string = accuntTypes[Utils.randomIntFromInterval(0, accuntTypes.length - 1)];
+      this.usersTest.push(
+        {
+          id: i + 1,
+          firstName: name,
+          dateOfBirth: dateOfBirth,
+          gender: gender,
+          email: `user.${i + 1}@myorg.net`,
+          phone: `+${i + 1}`,
+          password: `${i + 1}`,
+          accountType: accuntType,
+          disabled: false
+        }
+      );
+    }
+    this.originalUsersTest = [...this.usersTest];
+  }
+
   loadDataFromServer(
     pageIndex: number,
     pageSize: number,
@@ -45,11 +80,74 @@ export class UsersComponent {
     filter: Array<{ key: string; value: string[] }>
   ): void {
     this.loading = true;
-    this.getUsers(pageIndex, pageSize, sortField, sortOrder, filter).subscribe(data => {
-      this.loading = false;
-      this.total = data.meta.total;
-      this.users = data.users;
-    });
+    this.total = 1000000;
+    if (sortField && sortOrder) {
+      if (sortField === 'firstName') {
+        if (sortOrder === 'ascend') {
+          this.usersTest.sort((a: User, b: User) => {
+            if (a.firstName > b.firstName) {
+              return 1;
+            }
+            if (a.firstName < b.firstName) {
+              return -1;
+            }
+            return 0;
+          });
+        } else {
+          this.usersTest.sort((a: User, b: User) => {
+            if (a.firstName < b.firstName) {
+              return 1;
+            }
+            if (a.firstName > b.firstName) {
+              return -1;
+            }
+            return 0;
+          });
+        }
+      } else if (sortField === 'dateOfBirth') {
+        if (sortOrder === 'ascend') {
+          this.usersTest.sort((a: User, b: User) => {
+            if (new Date(a.dateOfBirth) > new Date(b.dateOfBirth)) {
+              return 1;
+            }
+            if (new Date(a.dateOfBirth) < new Date(b.dateOfBirth)) {
+              return -1;
+            }
+            return 0;
+          });
+        } else {
+          this.usersTest.sort((a: User, b: User) => {
+            if (new Date(a.dateOfBirth) < new Date(b.dateOfBirth)) {
+              return 1;
+            }
+            if (new Date(a.dateOfBirth) > new Date(b.dateOfBirth)) {
+              return -1;
+            }
+            return 0;
+          });
+        }
+      }
+    } else {
+      this.usersTest = [...this.originalUsersTest];
+    }
+    filter?.forEach((curentFilter) => {
+      if (curentFilter.key === 'gender') {
+        if (curentFilter.value && Array.isArray(curentFilter.value) && curentFilter.value.length > 0) {
+          this.usersTest = this.usersTest.filter((currentser: User) => curentFilter.value.includes(currentser.gender))
+        }
+      } else if (curentFilter.key === 'accountType') {
+        if (curentFilter.value && Array.isArray(curentFilter.value) && curentFilter.value.length > 0) {
+          this.usersTest = this.usersTest.filter((currentser: User) => curentFilter.value.includes(currentser.accountType))
+        }
+      }
+    })
+    this.users = this.usersTest.slice((pageIndex - 1) * pageSize, ((pageIndex - 1) * pageSize) + pageSize);
+    this.loading = false;
+    // this.getUsers(pageIndex, pageSize, sortField, sortOrder, filter).subscribe(data => {
+    //   this.total = data.meta.total;
+    //   this.users = data.users;
+    //   this.loading = false;
+    // });
   }
 
   getUsers(
@@ -115,8 +213,7 @@ export class UsersComponent {
 
   sendRequest(): void {
     this.loading = true;
-    const requestData = this.users.filter(currentUser => this.setOfCheckedId.has(currentUser.id));
-    console.log(requestData);
+    const requestData = this.users.filter((currentUser: User) => this.setOfCheckedId.has(currentUser.id));
     setTimeout(() => {
       this.setOfCheckedId.clear();
       this.refreshCheckedStatus();
