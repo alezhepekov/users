@@ -23,7 +23,6 @@ export class UsersComponent implements OnInit {
   checked = false;
   loading = false;
   indeterminate = false;
-  currentPageUsers: readonly User[] = [];
   setOfCheckedId = new Set<number>();
   users: User[] = [];
   originalUsersTest: User[] = [];
@@ -188,15 +187,10 @@ export class UsersComponent implements OnInit {
     }
   }
 
-  onCurrentPageDataChange(currentPageUsers: readonly User[]): void {
-    this.currentPageUsers = currentPageUsers;
-    this.refreshCheckedStatus();
-  }
-
   refreshCheckedStatus(): void {
-    const listOfEnabledData = this.currentPageUsers.filter(({ disabled }) => !disabled);
-    this.checked = listOfEnabledData.every(({ id }) => this.setOfCheckedId.has(id));
-    this.indeterminate = listOfEnabledData.some(({ id }) => this.setOfCheckedId.has(id)) && !this.checked;
+    const listOfEnabledUser = this.users.filter(({ disabled }) => !disabled);
+    this.checked = listOfEnabledUser.every(({ id }) => this.setOfCheckedId.has(id));
+    this.indeterminate = listOfEnabledUser.some(({ id }) => this.setOfCheckedId.has(id)) && !this.checked;
   }
 
   onItemChecked(id: number, checked: boolean): void {
@@ -205,15 +199,15 @@ export class UsersComponent implements OnInit {
   }
 
   onAllChecked(checked: boolean): void {
-    this.currentPageUsers
+    this.users
       .filter(({ disabled }) => !disabled)
       .forEach(({ id }) => this.updateCheckedSet(id, checked));
     this.refreshCheckedStatus();
   }
 
   sendRequest(): void {
+    console.log(Array.from(this.setOfCheckedId))
     this.loading = true;
-    const requestData = this.users.filter((currentUser: User) => this.setOfCheckedId.has(currentUser.id));
     setTimeout(() => {
       this.setOfCheckedId.clear();
       this.refreshCheckedStatus();
