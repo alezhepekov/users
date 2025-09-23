@@ -1,20 +1,24 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { catchError, Observable, of } from 'rxjs';
 import { subDays } from 'date-fns';
 import { NzTableModule, NzTableQueryParams } from 'ng-zorro-antd/table';
 import { NzButtonModule } from 'ng-zorro-antd/button';
+import { NzInputModule } from 'ng-zorro-antd/input';
 import { User } from '../types/user';
 import { Meta } from '../types/meta';
 import { Utils } from '../types/utils';
-
+import { FormsModule } from '@angular/forms';
 @Component({
   selector: 'app-users',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
+    FormsModule,
     NzTableModule,
-    NzButtonModule
+    NzButtonModule,
+    NzInputModule
   ],
   templateUrl: './users.component.html',
   styleUrl: './users.component.less'
@@ -37,11 +41,19 @@ export class UsersComponent implements OnInit {
     { text: 'Normal', value: 'NORMAL' },
     { text: 'Guest', value: 'GUEST' }
   ];
+  firstName: string = '';
 
   constructor(private http: HttpClient) {}
 
   ngOnInit(): void {
     this.generateRandomUserList();
+  }
+
+  searchFirstName() {
+    if (this.firstName) {
+      this.usersTest = this.usersTest.filter((currentser: User) => currentser.firstName.toLowerCase() === this.firstName.toLowerCase());
+      this.loadDataFromServer(1, 10, null, null, []);
+    }
   }
 
   generateRandomUserList(count: number = 1000000) {
@@ -127,7 +139,9 @@ export class UsersComponent implements OnInit {
         }
       }
     } else {
-      this.usersTest = [...this.originalUsersTest];
+      if (this.firstName.length === 0) {
+        this.usersTest = [...this.originalUsersTest];
+      }
     }
     filter?.forEach((curentFilter) => {
       if (curentFilter.key === 'gender') {

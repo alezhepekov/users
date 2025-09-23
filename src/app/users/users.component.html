@@ -1,13 +1,31 @@
-<div class="send-request">
-  <button
-    nz-button
-    nzType="primary"
-    [disabled]="setOfCheckedId.size === 0"
-    [nzLoading]="loading"
-    (click)="sendRequest()">
-    Send Request
-  </button>
-  <span>Selected {{ setOfCheckedId.size }} items</span>
+<div class="actions-bar">
+  <div class="send-request">
+    <button
+      nz-button
+      nzType="primary"
+      [disabled]="setOfCheckedId.size === 0"
+      [nzLoading]="loading"
+      (click)="sendRequest()">
+      Send Request
+    </button>
+    <span>Selected {{ setOfCheckedId.size }} items</span>
+  </div>
+  <div class="search-field-label">
+    <span>Name:</span>
+  </div>
+  <div class="search-field-input">
+    <input nz-input placeholder="Search text..." [(ngModel)]="firstName" type="string" />
+  </div>
+  <div class="search-field-button">
+    <button
+      nz-button
+      nzType="primary"
+      [disabled]="firstName.length === 0"
+      [nzLoading]="loading"
+      (click)="searchFirstName()">
+      Search
+    </button>
+  </div>
 </div>
 <nz-table
   #usersTable
