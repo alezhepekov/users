@@ -2,7 +2,7 @@ import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef } from '@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { catchError, Observable, of } from 'rxjs';
+import { catchError, forkJoin, mergeMap, Observable, of } from 'rxjs';
 import { NzTableModule, NzTableQueryParams } from 'ng-zorro-antd/table';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzInputModule } from 'ng-zorro-antd/input';
@@ -24,6 +24,7 @@ import { Meta } from '../types/meta';
 export class UsersComponent implements OnInit {
   checked = false;
   loading = false;
+  sendRequestIsloading = false;
   indeterminate = false;
   setOfCheckedId = new Set<number>();
   users: User[] = [];
@@ -87,6 +88,29 @@ export class UsersComponent implements OnInit {
       .pipe(catchError(() => of({ users: [], meta: { pageIndex: pageIndex, pageSize: pageSize, total: 0 } })));
   }
 
+  private getFUsersList(
+    idList: string[],
+  ): void {
+    let params = new HttpParams();
+    const getUsersPromise = (value: string): Promise<User> => {
+      return new Promise<User>((resolve) => {
+        this.http
+          .get<User>(`http://localhost:3000/api/users/${value}`, { params })
+          .subscribe((data: User) => {
+            resolve(data);
+          });
+      });
+    };
+
+    const usersList$: Observable<User[]> =
+      of(idList)
+        .pipe(mergeMap(q => forkJoin(...q.map(getUsersPromise))));
+    usersList$
+      .subscribe((value: User[]) => {
+        console.log(value);
+      });
+  }
+
   onQueryParamsChange(params: NzTableQueryParams) {
     const { pageSize, pageIndex, sort, filter } = params;
     const currentSort = sort.find(item => item.value !== null);
@@ -122,12 +146,14 @@ export class UsersComponent implements OnInit {
   }
 
   sendRequest(): void {
-    console.log(Array.from(this.setOfCheckedId))
-    this.loading = true;
+    this.getFUsersList(Array.from(this.setOfCheckedId).map((value: number) => value.toString()));
+    this.sendRequestIsloading = true;
     setTimeout(() => {
       this.setOfCheckedId.clear();
       this.refreshCheckedStatus();
-      this.loading = false;
+      this.sendRequestIsloading = false;
+      this.cdr.markForCheck();
+      this.cdr.detectChanges();
     }, 1000);
   }
 }
