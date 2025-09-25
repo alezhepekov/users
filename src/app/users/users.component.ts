@@ -4,9 +4,11 @@ import { FormsModule } from '@angular/forms';
 import { NzTableModule, NzTableQueryParams } from 'ng-zorro-antd/table';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzInputModule } from 'ng-zorro-antd/input';
+import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { UsersService } from './../users.service';
 import { User } from '../types/user';
 
+@UntilDestroy()
 @Component({
   selector: 'app-users',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -56,13 +58,15 @@ export class UsersComponent implements OnInit {
     filter: Array<{ key: string; value: string[] }>
   ): void {
     this.loading = true;
-    this.usersService.getUsers(pageIndex, pageSize, sortField, sortOrder, filter).subscribe(data => {
-      this.total = data.meta.total;
-      this.users = data.users;
-      this.loading = false;
-      this.cdr.markForCheck();
-      this.cdr.detectChanges();
-    });
+    this.usersService.getUsers(pageIndex, pageSize, sortField, sortOrder, filter)
+      .pipe(untilDestroyed(this))
+      .subscribe(data => {
+        this.total = data.meta.total;
+        this.users = data.users;
+        this.loading = false;
+        this.cdr.markForCheck();
+        this.cdr.detectChanges();
+      });
   }
 
   onQueryParamsChange(params: NzTableQueryParams) {
