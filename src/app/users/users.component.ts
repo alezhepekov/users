@@ -1,13 +1,12 @@
 import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { catchError, forkJoin, mergeMap, Observable, of } from 'rxjs';
 import { NzTableModule, NzTableQueryParams } from 'ng-zorro-antd/table';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzInputModule } from 'ng-zorro-antd/input';
+import { UsersService } from './../users.service';
 import { User } from '../types/user';
-import { Meta } from '../types/meta';
+
 @Component({
   selector: 'app-users',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -41,8 +40,8 @@ export class UsersComponent implements OnInit {
   firstName: string = '';
 
   constructor(
-    private cdr: ChangeDetectorRef,
-    private http: HttpClient
+    private readonly cdr: ChangeDetectorRef,
+    private readonly usersService: UsersService
   ) {}
 
   ngOnInit(): void {}
@@ -57,58 +56,13 @@ export class UsersComponent implements OnInit {
     filter: Array<{ key: string; value: string[] }>
   ): void {
     this.loading = true;
-    this.getUsers(pageIndex, pageSize, sortField, sortOrder, filter).subscribe(data => {
+    this.usersService.getUsers(pageIndex, pageSize, sortField, sortOrder, filter).subscribe(data => {
       this.total = data.meta.total;
       this.users = data.users;
       this.loading = false;
       this.cdr.markForCheck();
       this.cdr.detectChanges();
     });
-  }
-
-  getUsers(
-    pageIndex: number,
-    pageSize: number,
-    sortField: string | null,
-    sortOrder: string | null,
-    filters: Array<{ key: string; value: string[] }>
-  ): Observable<{ users: User[], meta: Meta }> {
-    let params = new HttpParams()
-      .append('pageIndex', `${pageIndex}`)
-      .append('pageSize', `${pageSize}`)
-      .append('sortField', `${sortField}`)
-      .append('sortOrder', `${sortOrder}`);
-    filters.forEach(filter => {
-      filter.value.forEach(value => {
-        params = params.append(filter.key, value);
-      });
-    });
-    return this.http
-      .get<{ users: User[], meta: Meta }>('http://localhost:3000/api/users', { params })
-      .pipe(catchError(() => of({ users: [], meta: { pageIndex: pageIndex, pageSize: pageSize, total: 0 } })));
-  }
-
-  private getFUsersList(
-    idList: string[],
-  ): void {
-    let params = new HttpParams();
-    const getUsersPromise = (value: string): Promise<User> => {
-      return new Promise<User>((resolve) => {
-        this.http
-          .get<User>(`http://localhost:3000/api/users/${value}`, { params })
-          .subscribe((data: User) => {
-            resolve(data);
-          });
-      });
-    };
-
-    const usersList$: Observable<User[]> =
-      of(idList)
-        .pipe(mergeMap(q => forkJoin(...q.map(getUsersPromise))));
-    usersList$
-      .subscribe((value: User[]) => {
-        console.log(value);
-      });
   }
 
   onQueryParamsChange(params: NzTableQueryParams) {
@@ -146,7 +100,7 @@ export class UsersComponent implements OnInit {
   }
 
   sendRequest(): void {
-    this.getFUsersList(Array.from(this.setOfCheckedId).map((value: number) => value.toString()));
+    this.usersService.getFUsersList(Array.from(this.setOfCheckedId).map((value: number) => value.toString()));
     this.sendRequestIsloading = true;
     setTimeout(() => {
       this.setOfCheckedId.clear();
