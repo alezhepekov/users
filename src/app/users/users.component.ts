@@ -104,7 +104,11 @@ export class UsersComponent implements OnInit {
   }
 
   sendRequest(): void {
-    this.usersService.getFUsersList(Array.from(this.setOfCheckedId).map((value: number) => value.toString()));
+    this.usersService.getFUsersList(Array.from(this.setOfCheckedId).map((value: number) => value.toString()))
+      .pipe(untilDestroyed(this))
+      .subscribe(data => {
+        console.log(data);
+      });
     this.sendRequestIsloading = true;
     setTimeout(() => {
       this.setOfCheckedId.clear();

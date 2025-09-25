@@ -34,7 +34,7 @@ export class UsersService {
       .pipe(catchError(() => of({ users: [], meta: { pageIndex: pageIndex, pageSize: pageSize, total: 0 } })));
   }
 
-  getFUsersList(idList: string[]): void {
+  getFUsersList(idList: string[]): Observable<User[]> {
     let params = new HttpParams();
     const getUsersPromise = (value: string): Promise<User> => {
       return new Promise<User>((resolve) => {
@@ -45,13 +45,12 @@ export class UsersService {
           });
       });
     };
+    return of(idList).pipe(mergeMap(q => forkJoin(...q.map(getUsersPromise))));
+  }
 
-    const usersList$: Observable<User[]> =
-      of(idList)
-        .pipe(mergeMap(q => forkJoin(...q.map(getUsersPromise))));
-    usersList$
-      .subscribe((value: User[]) => {
-        console.log(value);
-      });
+  getUser(id: string): Observable<User> {
+    let params = new HttpParams();
+    return this.http
+      .get<User>(`http://localhost:3000/api/users/${id}`, { params });
   }
 }
