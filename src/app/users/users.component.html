@@ -34,6 +34,8 @@
   [nzData]="users"
   [nzFrontPagination]="false"
   [nzLoading]="loading"
+  [nzPageIndex]="pageIndex"
+  [nzPageSize]="pageSize"
   [nzTotal]="total"
   (nzQueryParams)="onQueryParamsChange($event)"
   nzTableLayout="fixed">
@@ -43,13 +45,18 @@
         [nzChecked]="checked"
         [nzIndeterminate]="indeterminate"
         nzLabel="Select all"
-        (nzCheckedChange)="onAllChecked($event)"
-      ></th>
-      <th nzColumnKey="firstName" [nzSortFn]="true">Name</th>
+        (nzCheckedChange)="onAllChecked($event)"></th>
+      <!-- <th nzColumnKey="firstName" [nzSortFn]="true">Name</th> -->
+      <th nzColumnKey="firstName" [nzSortFn]="true" nzCustomFilter>
+        Name
+        <nz-filter-trigger [(nzVisible)]="visible" [nzActive]="searchValue.length > 0" [nzDropdownMenu]="menu">
+          <nz-icon nzType="search" />
+        </nz-filter-trigger>
+      </th>
       <th nzColumnKey="dateOfBirth" [nzSortFn]="true">Date of birth</th>
       <th nzColumnKey="gender" [nzFilters]="filterGender" [nzFilterFn]="true">Gender</th>
-      <th>Email</th>
-      <th>Phone</th>
+      <th nzColumnKey="email">Email</th>
+      <th nzColumnKey="phone">Phone</th>
       <th nzColumnKey="accountType" [nzFilters]="filterAccountType" [nzFilterFn]="true">Accout type</th>
     </tr>
   </thead>
@@ -60,8 +67,7 @@
           [nzChecked]="setOfCheckedId.has(user.id)"
           [nzDisabled]="user.disabled"
           [nzLabel]="user.firstName"
-          (nzCheckedChange)="onItemChecked(user.id, $event)"
-        ></td>
+          (nzCheckedChange)="onItemChecked(user.id, $event)"></td>
         <td>{{ user.firstName }}</td>
         <td>{{ user.dateOfBirth | date:'dd.MM.yyyy' }}</td>
         <td>{{ user.gender }}</td>
@@ -72,3 +78,12 @@
     }
   </tbody>
 </nz-table>
+<nz-dropdown-menu #menu="nzDropdownMenu">
+  <div class="ant-table-filter-dropdown">
+    <div class="search-box">
+      <input type="text" nz-input placeholder="Search name" [(ngModel)]="searchValue" />
+      <button nz-button nzSize="small" nzType="primary" (click)="search()" class="search-button">Search</button>
+      <button nz-button nzSize="small" (click)="reset()">Reset</button>
+    </div>
+  </div>
+</nz-dropdown-menu>

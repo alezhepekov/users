@@ -7,6 +7,8 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { UsersService } from './../users.service';
 import { User } from '../types/user';
+import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzIconModule } from 'ng-zorro-antd/icon';
 
 @UntilDestroy()
 @Component({
@@ -17,7 +19,9 @@ import { User } from '../types/user';
     FormsModule,
     NzTableModule,
     NzButtonModule,
-    NzInputModule
+    NzInputModule,
+    NzDropDownModule,
+    NzIconModule
   ],
   templateUrl: './users.component.html',
   styleUrl: './users.component.less'
@@ -29,7 +33,9 @@ export class UsersComponent implements OnInit {
   indeterminate = false;
   setOfCheckedId = new Set<number>();
   users: User[] = [];
-  total: number = 0;
+  pageIndex = 1;
+  pageSize = 10;
+  total = 0;
   filterGender = [
     { text: 'Male', value: 'MALE' },
     { text: 'Female', value: 'FEMALE' }
@@ -40,6 +46,18 @@ export class UsersComponent implements OnInit {
     { text: 'Guest', value: 'GUEST' }
   ];
   firstName: string = '';
+  searchValue = '';
+  visible = false;
+
+  reset(): void {
+    this.searchValue = '';
+    this.search();
+  }
+
+  search(): void {
+    this.visible = false;
+    // this.listOfDisplayData = this.listOfData.filter((item: DataItem) => item.name.indexOf(this.searchValue) !== -1);
+  }
 
   constructor(
     private readonly cdr: ChangeDetectorRef,
@@ -48,7 +66,9 @@ export class UsersComponent implements OnInit {
 
   ngOnInit(): void {}
 
-  searchFirstName(): void {}
+  searchFirstName(): void {
+    this.loadDataFromServer(this.pageIndex, this.pageSize, null, null, []);
+  }
 
   loadDataFromServer(
     pageIndex: number,
@@ -75,6 +95,8 @@ export class UsersComponent implements OnInit {
     const sortField = (currentSort && currentSort.key) || null;
     const sortOrder = (currentSort && currentSort.value) || null;
     this.loadDataFromServer(pageIndex, pageSize, sortField, sortOrder, filter);
+    this.pageIndex = pageIndex;
+    this.pageSize = pageSize;
   }
 
   updateCheckedSet(id: number, checked: boolean): void {
