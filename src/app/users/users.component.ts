@@ -49,16 +49,6 @@ export class UsersComponent implements OnInit {
   searchValue = '';
   visible = false;
 
-  reset(): void {
-    this.searchValue = '';
-    this.search();
-  }
-
-  search(): void {
-    this.visible = false;
-    // this.listOfDisplayData = this.listOfData.filter((item: DataItem) => item.name.indexOf(this.searchValue) !== -1);
-  }
-
   constructor(
     private readonly cdr: ChangeDetectorRef,
     private readonly usersService: UsersService
@@ -68,6 +58,11 @@ export class UsersComponent implements OnInit {
 
   searchFirstName(): void {
     this.loadDataFromServer(this.pageIndex, this.pageSize, null, null, []);
+  }
+
+  resetFirstName(): void {
+    this.firstName = '';
+    this.searchFirstName();
   }
 
   loadDataFromServer(
