@@ -57,10 +57,17 @@ export class UsersComponent implements OnInit {
   ngOnInit(): void {}
 
   searchFirstName(): void {
-    this.loadDataFromServer(this.pageIndex, this.pageSize, null, null, []);
+    console.log('UsersComponent.searchFirstName', this.firstName);
+    if (this.firstName.length > 0) {
+      this.loadDataFromServer(this.pageIndex, this.pageSize, null, null, [{
+        key: 'firstName',
+        value: [this.firstName]
+      }]);
+    }
   }
 
   resetFirstName(): void {
+    console.log('UsersComponent.resetFirstName');
     this.firstName = '';
     this.searchFirstName();
   }
@@ -72,6 +79,7 @@ export class UsersComponent implements OnInit {
     sortOrder: string | null,
     filter: Array<{ key: string; value: string[] }>
   ): void {
+    console.log('UsersComponent.loadDataFromServer', pageIndex, pageSize, sortField, filter);
     this.loading = true;
     this.usersService.getUsers(pageIndex, pageSize, sortField, sortOrder, filter)
       .pipe(untilDestroyed(this))
@@ -85,6 +93,7 @@ export class UsersComponent implements OnInit {
   }
 
   onQueryParamsChange(params: NzTableQueryParams) {
+    console.log('UsersComponent.onQueryParamsChange', params);
     const { pageSize, pageIndex, sort, filter } = params;
     const currentSort = sort.find(item => item.value !== null);
     const sortField = (currentSort && currentSort.key) || null;
